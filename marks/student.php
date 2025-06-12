@@ -1,13 +1,22 @@
 <?php
-require_once __DIR__.'/../utils/db.php';
-require_once __DIR__.'/../utils/response.php';
+require_once __DIR__ . '/../utils/db.php';
+require_once __DIR__ . '/../utils/response.php';
 
-$uid=intval(basename($_SERVER['REQUEST_URI'],'.php'));
-$db=DB::connect();
+$sid = $_GET['student_id'] ?? '';
 
-$sql="SELECT sub.title AS subject, m.exam_type, m.mark
-      FROM marks m JOIN subjects sub ON m.subject_id=sub.id
-      WHERE m.student_id=?";
-$st=$db->prepare($sql); $st->execute([$uid]);
+if (!$sid) {
+    json_response(false, null, 'Missing student ID');
+}
 
-json_response(true,['marks'=>$st->fetchAll()]);
+$db = DB::connect();
+$q = $db->prepare("
+    SELECT subjects.title AS subject, marks.exam_type, marks.mark
+    FROM marks
+    JOIN subjects ON marks.subject_id = subjects.id
+    WHERE marks.student_id = ?
+");
+$q->execute([$sid]);
+$marks = $q->fetchAll(PDO::FETCH_ASSOC);
+
+json_response(true, ['marks' => $marks]);
+?>

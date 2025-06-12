@@ -1,6 +1,10 @@
 <?php
-function json_response(bool $ok,$data=null,string $msg=''){
-    header('Content-Type: application/json');
-    echo json_encode(['success'=>$ok,'message'=>$msg,'data'=>$data]);
+function json_response($success, $data = null, $message = '') {
+    echo json_encode([
+        'success' => $success,
+        'message' => $message,
+        'data' => $data
+    ]);
     exit;
 }
+?>

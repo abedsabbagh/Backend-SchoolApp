@@ -1,14 +1,20 @@
 <?php
-require_once __DIR__.'/../utils/db.php';
-require_once __DIR__.'/../utils/response.php';
+require_once __DIR__ . '/../utils/db.php';
+require_once __DIR__ . '/../utils/response.php';
 
-$uid=intval(basename($_SERVER['REQUEST_URI'],'.php'));
+$uid = $_GET['uid'] ?? '';
+
+if (!$uid) {
+    json_response(false, null, 'Missing user ID');
+}
+
 $db = DB::connect();
+$q = $db->prepare("SELECT subjects.title AS subject, schedules.day_of_week AS day, schedules.start_time AS start, schedules.end_time AS end
+                   FROM schedules 
+                   JOIN subjects ON schedules.subject_id = subjects.id 
+                   WHERE schedules.user_id = ?");
+$q->execute([$uid]);
+$schedule = $q->fetchAll(PDO::FETCH_ASSOC);
 
-$sql="SELECT s.title AS subject, sc.day_of_week AS day,
-            sc.start_time AS start, sc.end_time AS end
-      FROM schedules sc JOIN subjects s ON sc.subject_id=s.id
-      WHERE sc.user_id=?";
-$stmt=$db->prepare($sql); $stmt->execute([$uid]);
-
-json_response(true,['schedule'=>$stmt->fetchAll()]);
+json_response(true, ['schedule' => $schedule]);
+?>
